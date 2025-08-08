@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/autenticacion.js";
 import usuarioRoutes from "./routes/usuarios.js";
-
+import categoriasRoutes from "./routes/categorias.js";
 
 
 dotenv.config();
@@ -17,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usuarioRoutes);
 app.use("/api/roles", roleRoutes);
+app.use("/api/categorias", categoriasRoutes);
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {

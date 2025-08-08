@@ -1,4 +1,3 @@
-// models/User.js (REEMPLAZA el archivo completo)
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({

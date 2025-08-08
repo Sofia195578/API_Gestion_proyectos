@@ -1,4 +1,3 @@
-// controllers/roles.js
 import Role from '../models/role.js';
 
 // GET /api/roles - Listar roles disponibles

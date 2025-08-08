@@ -1,4 +1,3 @@
-// controllers/autenticacion.js (REEMPLAZA tu archivo completo)
 import Usuario from '../models/Users.js';
 import Role from '../models/role.js';
 import generarJWT from '../helpers/generarJWT.js';
