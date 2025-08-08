@@ -3,6 +3,9 @@ import roleRoutes from "./routes/roles.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/autenticacion.js";
+import projectRoutes from "./routes/proyectos.js";
+import sistemaRoutes from "./routes/sistema.js";
+
 import usuarioRoutes from "./routes/usuarios.js";
 import categoriasRoutes from "./routes/categorias.js";
 
@@ -18,7 +21,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usuarioRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/categorias", categoriasRoutes);
-
+app.use("/api/projects", projectRoutes);
+app.use("/api/system", sistemaRoutes);
 // Ruta de prueba
 app.get('/api/test', (req, res) => {
   res.json({ 

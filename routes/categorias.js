@@ -1,17 +1,25 @@
 import express from 'express';
-import categorias from '../controllers/categorias.js';
+import categoriasController from '../controllers/categorias.js';
 import validarJWT from '../middlewares/validarJWT.js';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación
+// Aplicar middleware de validación JWT a todas las rutas
 router.use(validarJWT);
 
-// GET /api/roles - Listar roles (todos los usuarios autenticados)
-router.get('/', categorias.listarCategoria);
+// GET /api/categories - Listar todas las categorías
+router.get('/', categoriasController.listarCategorias);
 
-router.post('/', categorias.crearCategoria);
-router.put('/:id', categorias.actualizarCategoria);
-router.delete('/:id', categorias.eliminarCategoria);
+// POST /api/categories - Crear categoría
+router.post('/', categoriasController.crearCategoria);
+
+// GET /api/categories/:id - Obtener categoría específica
+router.get('/:id', categoriasController.obtenerCategoria);
+
+// PUT /api/categories/:id - Actualizar categoría
+router.put('/:id', categoriasController.actualizarCategoria);
+
+// DELETE /api/categories/:id - Eliminar categoría
+router.delete('/:id', categoriasController.eliminarCategoria);
 
 export default router;

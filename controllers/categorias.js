@@ -1,9 +1,13 @@
 import Categoria from '../models/categorias.js';
+import Project from '../models/projects.js';
+import mongoose from 'mongoose';
 
-// Listar categorias
-const listarCategoria = async (req, res) => {
+// GET /api/system/categories - Listar todas las categorías
+const listarCategorias = async (req, res) => {
     try {
-        const categorias = await Categoria.find({ isActive: true });
+        const categorias = await Categoria.find({ isActive: true })
+            .sort({ name: 1 });
+
         res.json({
             ok: true,
             categorias
@@ -11,22 +15,21 @@ const listarCategoria = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             ok: false,
-            msg: 'Error al listar categorias',
+            msg: 'Error al listar categorías',
             error: error.message
         });
     }
 };
 
-// Crear categoria
+// POST /api/system/categories - Crear categoría
 const crearCategoria = async (req, res) => {
     try {
         const { name, description } = req.body;
-    
-        const categoriaExistente = await Categoria.findOne({ name });
-        if (categoriaExistente) {
+
+        if (!name || !description) {
             return res.status(400).json({
                 ok: false,
-                msg: 'La categoria ya existe'
+                msg: 'El nombre y la descripción son obligatorios'
             });
         }
 
@@ -39,86 +42,171 @@ const crearCategoria = async (req, res) => {
 
         res.status(201).json({
             ok: true,
-            msg: 'Categoria creada correctamente',
+            msg: 'Categoría creada exitosamente',
             categoria: nuevaCategoria
         });
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Ya existe una categoría con ese nombre'
+            });
+        }
+        
         res.status(500).json({
             ok: false,
-            msg: 'Error al crear categoria',
+            msg: 'Error al crear categoría',
             error: error.message
         });
     }
 };
 
-// Actualizar categorias
+// GET /api/system/categories/:id - Obtener categoría específica
+const obtenerCategoria = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'ID de categoría inválido'
+            });
+        }
+
+        const categoria = await Categoria.findOne({
+            _id: id,
+            isActive: true
+        });
+
+        if (!categoria) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Categoría no encontrada'
+            });
+        }
+
+        res.json({
+            ok: true,
+            categoria
+        });
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al obtener categoría',
+            error: error.message
+        });
+    }
+};
+
+// PUT /api/system/categories/:id - Actualizar categoría
 const actualizarCategoria = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { name, description } = req.body;
+    try {
+        const { id } = req.params;
+        const { name, description } = req.body;
 
-    const categoriaActualizada = await Categoria.findByIdAndUpdate(
-      id,
-      { name, description },
-      { new: true }
-    );
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'ID de categoría inválido'
+            });
+        }
 
-    if (!categoriaActualizada) {
-      return res.status(404).json({
-        ok: false,
-        msg: 'Categoria no encontrada'
-      });
+        if (!name || !description) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'El nombre y la descripción son obligatorios'
+            });
+        }
+
+        const categoriaActualizada = await Categoria.findByIdAndUpdate(
+            id,
+            { name, description },
+            { new: true, runValidators: true }
+        );
+
+        if (!categoriaActualizada) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Categoría no encontrada'
+            });
+        }
+
+        res.json({
+            ok: true,
+            msg: 'Categoría actualizada exitosamente',
+            categoria: categoriaActualizada
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Ya existe una categoría con ese nombre'
+            });
+        }
+        
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al actualizar categoría',
+            error: error.message
+        });
     }
-
-    res.json({
-      ok: true,
-      msg: 'Categoria actualizada correctamente',
-      categoria: categoriaActualizada
-    });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      msg: 'Error al actualizar categoria',
-      error: error.message
-    });
-  }
 };
 
-//Eliminar categoria
+// DELETE /api/system/categories/:id - Eliminar categoría (soft delete)
 const eliminarCategoria = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    const categoriaEliminada = await Categoria.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
-    );
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'ID de categoría inválido'
+            });
+        }
 
-    if (!categoriaEliminada) {
-      return res.status(404).json({
-        ok: false,
-        msg: 'Categoria no encontrada'
-      });
+        // Verificar si hay proyectos usando esta categoría
+        const proyectosConCategoria = await Project.countDocuments({
+            category: id,
+            isActive: true
+        });
+
+        if (proyectosConCategoria > 0) {
+            return res.status(400).json({
+                ok: false,
+                msg: `No se puede eliminar la categoría porque tiene ${proyectosConCategoria} proyecto(s) asociado(s)`
+            });
+        }
+
+        const categoria = await Categoria.findByIdAndUpdate(
+            id,
+            { isActive: false },
+            { new: true }
+        );
+
+        if (!categoria) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Categoría no encontrada'
+            });
+        }
+
+        res.json({
+            ok: true,
+            msg: 'Categoría eliminada exitosamente'
+        });
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            msg: 'Error al eliminar categoría',
+            error: error.message
+        });
     }
-
-    res.json({
-      ok: true,
-      msg: 'Categoria eliminada correctamente'
-    });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      msg: 'Error al eliminar categoria',
-      error: error.message
-    });
-  }
 };
-
 
 export default {
+    listarCategorias,
     crearCategoria,
-    listarCategoria,
+    obtenerCategoria,
     actualizarCategoria,
     eliminarCategoria
 };
