@@ -6,7 +6,7 @@ import validarJWT from '../middlewares/validarJWT.js';
 
 const router = express.Router();
 
-// Aplicar middleware de validación JWT a todas las rutas
+
 router.use(validarJWT);
 
 // Rutas de Categorías

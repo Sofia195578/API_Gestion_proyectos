@@ -1,4 +1,3 @@
-// routes/roles.js
 import express from 'express';
 import roles from '../controllers/roles.js';
 import validarJWT from '../middlewares/validarJWT.js';
@@ -6,7 +5,7 @@ import { esAdmin } from '../middlewares/autorizacion.js';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación
+
 router.use(validarJWT);
 
 // GET /api/roles - Listar roles (todos los usuarios autenticados)

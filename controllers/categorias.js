@@ -2,7 +2,7 @@ import Categoria from '../models/categorias.js';
 import Project from '../models/projects.js';
 import mongoose from 'mongoose';
 
-// GET /api/system/categories - Listar todas las categorías
+
 const listarCategorias = async (req, res) => {
     try {
         const categorias = await Categoria.find({ isActive: true })
@@ -21,7 +21,7 @@ const listarCategorias = async (req, res) => {
     }
 };
 
-// POST /api/system/categories - Crear categoría
+
 const crearCategoria = async (req, res) => {
     try {
         const { name, description } = req.body;
@@ -52,7 +52,7 @@ const crearCategoria = async (req, res) => {
                 msg: 'Ya existe una categoría con ese nombre'
             });
         }
-        
+
         res.status(500).json({
             ok: false,
             msg: 'Error al crear categoría',
@@ -61,7 +61,7 @@ const crearCategoria = async (req, res) => {
     }
 };
 
-// GET /api/system/categories/:id - Obtener categoría específica
+
 const obtenerCategoria = async (req, res) => {
     try {
         const { id } = req.params;
@@ -98,7 +98,7 @@ const obtenerCategoria = async (req, res) => {
     }
 };
 
-// PUT /api/system/categories/:id - Actualizar categoría
+
 const actualizarCategoria = async (req, res) => {
     try {
         const { id } = req.params;
@@ -143,7 +143,7 @@ const actualizarCategoria = async (req, res) => {
                 msg: 'Ya existe una categoría con ese nombre'
             });
         }
-        
+
         res.status(500).json({
             ok: false,
             msg: 'Error al actualizar categoría',
@@ -152,7 +152,7 @@ const actualizarCategoria = async (req, res) => {
     }
 };
 
-// DELETE /api/system/categories/:id - Eliminar categoría (soft delete)
+
 const eliminarCategoria = async (req, res) => {
     try {
         const { id } = req.params;
@@ -164,7 +164,6 @@ const eliminarCategoria = async (req, res) => {
             });
         }
 
-        // Verificar si hay proyectos usando esta categoría
         const proyectosConCategoria = await Project.countDocuments({
             category: id,
             isActive: true

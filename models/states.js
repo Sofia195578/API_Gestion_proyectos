@@ -4,12 +4,16 @@ const stateSchema = new mongoose.Schema({
     name: { 
         type: String, 
         required: true,
-        trim: true,
-        unique: true
+        trim: true
     },
     description: { 
         type: String,
         trim: true
+    },
+    type: {
+        type: String,
+        enum: ['Project', 'Task'],
+        required: true
     },
     color: { 
         type: String, 
@@ -21,7 +25,7 @@ const stateSchema = new mongoose.Schema({
     },
     isFinal: {
         type: Boolean,
-        default: false // Indica si es un estado final del proyecto
+        default: false // Indica si es un estado final del proyecto/tarea
     },
     isActive: { 
         type: Boolean, 
@@ -36,6 +40,9 @@ const stateSchema = new mongoose.Schema({
         default: Date.now 
     }
 });
+
+// Índice compuesto para name y type (permite duplicar nombres entre tipos)
+stateSchema.index({ name: 1, type: 1 }, { unique: true });
 
 // Middleware para actualizar updatedAt
 stateSchema.pre('save', function(next) {

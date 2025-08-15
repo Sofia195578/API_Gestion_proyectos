@@ -1,10 +1,12 @@
 import express from 'express';
 import proyectosController from '../controllers/proyectos.js';
+import tareasController from '../controllers/tareas.js';
+import comentariosController from '../controllers/comentarios.js';
 import validarJWT from '../middlewares/validarJWT.js';
 
 const router = express.Router();
 
-// Aplicar middleware de validación JWT a todas las rutas
+
 router.use(validarJWT);
 
 // GET /api/projects - Listar proyectos del usuario
@@ -30,5 +32,19 @@ router.delete('/:id/members/:userId', proyectosController.removerMiembro);
 
 // PUT /api/projects/:id/status - Cambiar estado del proyecto
 router.put('/:id/status', proyectosController.cambiarEstado);
+
+// === RUTAS DE TAREAS DEL PROYECTO ===
+// GET /api/projects/:projectId/tasks - Listar tareas del proyecto
+router.get('/:projectId/tasks', tareasController.listarTareasProyecto);
+
+// POST /api/projects/:projectId/tasks - Crear tarea
+router.post('/:projectId/tasks', tareasController.crearTarea);
+
+// === RUTAS DE COMENTARIOS DEL PROYECTO ===
+// GET /api/projects/:id/comments - Comentarios del proyecto
+router.get('/:id/comments', comentariosController.listarComentarios);
+
+// POST /api/projects/:id/comments - Comentar en proyecto
+router.post('/:id/comments', comentariosController.crearComentario);
 
 export default router;

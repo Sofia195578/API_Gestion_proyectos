@@ -30,30 +30,30 @@ const registrar = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         ok: false,
-        msg: "Todos los campos son obligatorios" 
+        msg: "Todos los campos son obligatorios"
       });
     }
 
     if (!isValidEmail(email)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         ok: false,
-        msg: "Formato de correo inválido" 
+        msg: "Formato de correo inválido"
       });
     }
 
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         ok: false,
-        msg: "El correo ya está registrado" 
+        msg: "El correo ya está registrado"
       });
     }
 
     // Obtener rol por defecto (Viewer)
     let rolPorDefecto = await Role.findOne({ name: 'Viewer', isActive: true });
-    
+
     // Si no existe el rol Viewer, crear los roles básicos
     if (!rolPorDefecto) {
       await crearRolesIniciales();
@@ -73,15 +73,15 @@ const registrar = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    res.status(201).json({ 
+    res.status(201).json({
       ok: true,
-      msg: "Usuario registrado correctamente" 
+      msg: "Usuario registrado correctamente"
     });
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       ok: false,
-      msg: "Error al registrar usuario", 
-      error: error.message 
+      msg: "Error al registrar usuario",
+      error: error.message
     });
   }
 };
@@ -93,19 +93,19 @@ const login = async (req, res) => {
 
     const usuario = await Usuario.findOne({ email, isActive: true })
       .populate('globalRole', 'name description');
-    
+
     if (!usuario) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         ok: false,
-        msg: 'Usuario no encontrado o inactivo' 
+        msg: 'Usuario no encontrado o inactivo'
       });
     }
 
     const validPassword = await comparePassword(password, usuario.password);
     if (!validPassword) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         ok: false,
-        msg: 'Contraseña incorrecta' 
+        msg: 'Contraseña incorrecta'
       });
     }
 
@@ -126,10 +126,10 @@ const login = async (req, res) => {
       token
     });
   } catch (err) {
-    res.status(500).json({ 
+    res.status(500).json({
       ok: false,
-      msg: 'Error al iniciar sesión', 
-      error: err.message 
+      msg: 'Error al iniciar sesión',
+      error: err.message
     });
   }
 };
@@ -141,41 +141,41 @@ const refresh = async (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const nuevoToken = await generarJWT(decoded.id);
-    res.json({ 
+    res.json({
       ok: true,
-      token: nuevoToken 
+      token: nuevoToken
     });
   } catch (err) {
-    res.status(401).json({ 
+    res.status(401).json({
       ok: false,
-      msg: "Token inválido o expirado" 
+      msg: "Token inválido o expirado"
     });
   }
 };
 
 // Logout
 const logout = async (req, res) => {
-  res.json({ 
+  res.json({
     ok: true,
-    msg: 'Sesión cerrada correctamente' 
+    msg: 'Sesión cerrada correctamente'
   });
 };
 
 // Recuperación de contraseña (placeholder)
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-  res.json({ 
+  res.json({
     ok: true,
-    msg: `Correo de recuperación enviado a ${email}` 
+    msg: `Correo de recuperación enviado a ${email}`
   });
 };
 
 // Restablecer contraseña (placeholder)
 const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
-  res.json({ 
+  res.json({
     ok: true,
-    msg: 'Contraseña restablecida correctamente' 
+    msg: 'Contraseña restablecida correctamente'
   });
 };
 

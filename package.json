@@ -3,18 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-    "scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node app.js",
-    "seed": "node scripts/seedData.js"
+    "dev": "cross-env NODE_ENV=development node app.js",
+    "start": "cross-env NODE_ENV=production node app.js",
+    "seed": "cross-env NODE_ENV=development node scripts/seedData.js",
+    "seed-states": "cross-env NODE_ENV=development node scripts/seedStates.js",
+    "debug-ai": "cross-env NODE_ENV=development node scripts/debugAI.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
+    "cross-env": "^7.0.3",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",

@@ -2,12 +2,10 @@ import Project from '../models/projects.js';
 import Categoria from '../models/categorias.js';
 import mongoose from 'mongoose';
 
-// GET /api/projects - Listar proyectos del usuario
 const listarProyectos = async (req, res) => {
     try {
         const userId = req.usuario._id;
-        
-        // Buscar proyectos donde el usuario sea owner o miembro
+
         const proyectos = await Project.find({
             $or: [
                 { owner: userId },
@@ -15,12 +13,12 @@ const listarProyectos = async (req, res) => {
             ],
             isActive: true
         })
-        .populate('owner', 'firstName lastName email')
-        .populate('category', 'name')
-        .populate('status', 'name')
-        .populate('members.user', 'firstName lastName email')
-        .populate('members.role', 'name')
-        .sort({ createdAt: -1 });
+            .populate('owner', 'firstName lastName email')
+            .populate('category', 'name')
+            .populate('status', 'name')
+            .populate('members.user', 'firstName lastName email')
+            .populate('members.role', 'name')
+            .sort({ createdAt: -1 });
 
         res.json({
             ok: true,
@@ -36,7 +34,6 @@ const listarProyectos = async (req, res) => {
     }
 };
 
-// POST /api/projects - Crear proyecto
 const crearProyecto = async (req, res) => {
     try {
         const {
@@ -52,7 +49,6 @@ const crearProyecto = async (req, res) => {
             tags
         } = req.body;
 
-        // Validaciones básicas
         if (!name || !description || !category || !status) {
             return res.status(400).json({
                 ok: false,
@@ -60,7 +56,6 @@ const crearProyecto = async (req, res) => {
             });
         }
 
-        // Crear el proyecto
         const nuevoProyecto = new Project({
             name,
             description,
@@ -73,12 +68,11 @@ const crearProyecto = async (req, res) => {
             estimatedHours,
             budget,
             tags: tags || [],
-            members: [] // Inicialmente vacío, el owner se puede agregar después si es necesario
+            members: []
         });
 
         await nuevoProyecto.save();
 
-        // Poblar los datos para la respuesta
         await nuevoProyecto.populate([
             { path: 'owner', select: 'firstName lastName email' },
             { path: 'category', select: 'name' },
@@ -99,7 +93,7 @@ const crearProyecto = async (req, res) => {
     }
 };
 
-// GET /api/projects/:id - Obtener proyecto específico
+
 const obtenerProyecto = async (req, res) => {
     try {
         const { id } = req.params;
@@ -121,11 +115,11 @@ const obtenerProyecto = async (req, res) => {
             ],
             isActive: true
         })
-        .populate('owner', 'firstName lastName email')
-        .populate('category', 'name description')
-        .populate('status', 'name description')
-        .populate('members.user', 'firstName lastName email')
-        .populate('members.role', 'name permissions');
+            .populate('owner', 'firstName lastName email')
+            .populate('category', 'name description')
+            .populate('status', 'name description')
+            .populate('members.user', 'firstName lastName email')
+            .populate('members.role', 'name permissions');
 
         if (!proyecto) {
             return res.status(404).json({
@@ -147,13 +141,11 @@ const obtenerProyecto = async (req, res) => {
     }
 };
 
-// PUT /api/projects/:id - Actualizar proyecto
 const actualizarProyecto = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.usuario._id;
 
-        // Validar ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
                 ok: false,
@@ -161,7 +153,6 @@ const actualizarProyecto = async (req, res) => {
             });
         }
 
-        // Verificar que el usuario sea el owner del proyecto
         const proyecto = await Project.findOne({
             _id: id,
             owner: userId,
@@ -175,10 +166,9 @@ const actualizarProyecto = async (req, res) => {
             });
         }
 
-        // Campos actualizables
         const camposPermitidos = [
-            'name', 'description', 'category', 'priority', 
-            'startDate', 'endDate', 'estimatedHours', 'actualHours', 
+            'name', 'description', 'category', 'priority',
+            'startDate', 'endDate', 'estimatedHours', 'actualHours',
             'budget', 'tags'
         ];
 
@@ -194,11 +184,11 @@ const actualizarProyecto = async (req, res) => {
             actualizaciones,
             { new: true, runValidators: true }
         )
-        .populate('owner', 'firstName lastName email')
-        .populate('category', 'name')
-        .populate('status', 'name')
-        .populate('members.user', 'firstName lastName email')
-        .populate('members.role', 'name');
+            .populate('owner', 'firstName lastName email')
+            .populate('category', 'name')
+            .populate('status', 'name')
+            .populate('members.user', 'firstName lastName email')
+            .populate('members.role', 'name');
 
         res.json({
             ok: true,
@@ -214,13 +204,11 @@ const actualizarProyecto = async (req, res) => {
     }
 };
 
-// DELETE /api/projects/:id - Eliminar proyecto (soft delete)
 const eliminarProyecto = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.usuario._id;
 
-        // Validar ObjectId
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
                 ok: false,
@@ -228,7 +216,6 @@ const eliminarProyecto = async (req, res) => {
             });
         }
 
-        // Verificar que el usuario sea el owner del proyecto
         const proyecto = await Project.findOne({
             _id: id,
             owner: userId,
@@ -242,8 +229,7 @@ const eliminarProyecto = async (req, res) => {
             });
         }
 
-        // Soft delete - marcar como inactivo
-        await Project.findByIdAndUpdate(id, { 
+        await Project.findByIdAndUpdate(id, {
             isActive: false,
             updatedAt: Date.now()
         });
@@ -260,8 +246,6 @@ const eliminarProyecto = async (req, res) => {
         });
     }
 };
-
-// POST /api/projects/:id/members - Agregar miembro al proyecto
 const agregarMiembro = async (req, res) => {
     try {
         const { id } = req.params;
@@ -269,8 +253,8 @@ const agregarMiembro = async (req, res) => {
         const ownerId = req.usuario._id;
 
         // Validaciones
-        if (!mongoose.Types.ObjectId.isValid(id) || 
-            !mongoose.Types.ObjectId.isValid(userId) || 
+        if (!mongoose.Types.ObjectId.isValid(id) ||
+            !mongoose.Types.ObjectId.isValid(userId) ||
             !mongoose.Types.ObjectId.isValid(roleId)) {
             return res.status(400).json({
                 ok: false,
@@ -278,7 +262,6 @@ const agregarMiembro = async (req, res) => {
             });
         }
 
-        // Verificar que el usuario sea el owner del proyecto
         const proyecto = await Project.findOne({
             _id: id,
             owner: ownerId,
@@ -292,8 +275,7 @@ const agregarMiembro = async (req, res) => {
             });
         }
 
-        // Verificar si el usuario ya es miembro
-        const yaMiembro = proyecto.members.some(member => 
+        const yaMiembro = proyecto.members.some(member =>
             member.user.toString() === userId
         );
 
@@ -304,7 +286,6 @@ const agregarMiembro = async (req, res) => {
             });
         }
 
-        // Agregar miembro
         proyecto.members.push({
             user: userId,
             role: roleId,
@@ -313,7 +294,6 @@ const agregarMiembro = async (req, res) => {
 
         await proyecto.save();
 
-        // Poblar para respuesta
         await proyecto.populate('members.user', 'firstName lastName email');
         await proyecto.populate('members.role', 'name');
 
@@ -331,14 +311,12 @@ const agregarMiembro = async (req, res) => {
     }
 };
 
-// DELETE /api/projects/:id/members/:userId - Remover miembro
 const removerMiembro = async (req, res) => {
     try {
         const { id, userId } = req.params;
         const ownerId = req.usuario._id;
 
-        // Validaciones
-        if (!mongoose.Types.ObjectId.isValid(id) || 
+        if (!mongoose.Types.ObjectId.isValid(id) ||
             !mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({
                 ok: false,
@@ -346,7 +324,6 @@ const removerMiembro = async (req, res) => {
             });
         }
 
-        // Verificar que el usuario sea el owner del proyecto
         const proyecto = await Project.findOne({
             _id: id,
             owner: ownerId,
@@ -360,8 +337,7 @@ const removerMiembro = async (req, res) => {
             });
         }
 
-        // Verificar si el usuario es miembro
-        const miembroIndex = proyecto.members.findIndex(member => 
+        const miembroIndex = proyecto.members.findIndex(member =>
             member.user.toString() === userId
         );
 
@@ -372,7 +348,6 @@ const removerMiembro = async (req, res) => {
             });
         }
 
-        // Remover miembro
         proyecto.members.splice(miembroIndex, 1);
         await proyecto.save();
 
@@ -390,15 +365,13 @@ const removerMiembro = async (req, res) => {
     }
 };
 
-// PUT /api/projects/:id/status - Cambiar estado del proyecto
 const cambiarEstado = async (req, res) => {
     try {
         const { id } = req.params;
         const { statusId } = req.body;
         const userId = req.usuario._id;
 
-        // Validaciones
-        if (!mongoose.Types.ObjectId.isValid(id) || 
+        if (!mongoose.Types.ObjectId.isValid(id) ||
             !mongoose.Types.ObjectId.isValid(statusId)) {
             return res.status(400).json({
                 ok: false,
@@ -406,7 +379,6 @@ const cambiarEstado = async (req, res) => {
             });
         }
 
-        // Verificar que el usuario tenga acceso al proyecto (owner o miembro)
         const proyecto = await Project.findOne({
             _id: id,
             $or: [
@@ -423,14 +395,13 @@ const cambiarEstado = async (req, res) => {
             });
         }
 
-        // Actualizar estado
         const proyectoActualizado = await Project.findByIdAndUpdate(
             id,
             { status: statusId },
             { new: true, runValidators: true }
         )
-        .populate('status', 'name description')
-        .populate('owner', 'firstName lastName email');
+            .populate('status', 'name description')
+            .populate('owner', 'firstName lastName email');
 
         res.json({
             ok: true,

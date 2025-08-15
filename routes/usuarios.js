@@ -1,4 +1,3 @@
-// routes/usuarios.js
 import express from 'express';
 import usuarios from '../controllers/usuarios.js';
 import validarJWT from '../middlewares/validarJWT.js';
@@ -6,7 +5,6 @@ import { esAdmin } from '../middlewares/autorizacion.js';
 
 const router = express.Router();
 
-// Todas las rutas requieren autenticación
 router.use(validarJWT);
 
 // GET /api/users - Listar usuarios (Solo Admin)

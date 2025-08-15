@@ -85,13 +85,11 @@ const projectSchema = new mongoose.Schema({
     }
 });
 
-// Middleware para actualizar updatedAt antes de guardar
 projectSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-// Middleware para actualizar updatedAt en findOneAndUpdate
 projectSchema.pre('findOneAndUpdate', function(next) {
     this.set({ updatedAt: Date.now() });
     next();

@@ -1,10 +1,9 @@
 import Role from '../models/role.js';
 
-// GET /api/roles - Listar roles disponibles
 const listarRoles = async (req, res) => {
   try {
     const roles = await Role.find({ isActive: true });
-    
+
     res.json({
       ok: true,
       roles
@@ -18,12 +17,10 @@ const listarRoles = async (req, res) => {
   }
 };
 
-// POST /api/roles - Crear nuevo rol (Solo Admin)
 const crearRol = async (req, res) => {
   try {
     const { name, description } = req.body;
 
-    // Verificar si el rol ya existe
     const rolExistente = await Role.findOne({ name });
     if (rolExistente) {
       return res.status(400).json({
@@ -53,7 +50,6 @@ const crearRol = async (req, res) => {
   }
 };
 
-// PUT /api/roles/:id - Actualizar rol (Solo Admin)
 const actualizarRol = async (req, res) => {
   try {
     const { id } = req.params;
@@ -86,12 +82,10 @@ const actualizarRol = async (req, res) => {
   }
 };
 
-// DELETE /api/roles/:id - Eliminar rol (Solo Admin)
 const eliminarRol = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Soft delete - marcar como inactivo
     const rolEliminado = await Role.findByIdAndUpdate(
       id,
       { isActive: false },
