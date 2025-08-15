@@ -52,7 +52,6 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Método para ocultar la contraseña en las respuestas JSON
 userSchema.methods.toJSON = function() {
   const user = this.toObject();
   delete user.password;

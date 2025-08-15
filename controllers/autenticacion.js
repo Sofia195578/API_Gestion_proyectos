@@ -4,6 +4,7 @@ import generarJWT from '../helpers/generarJWT.js';
 import jwt from 'jsonwebtoken';
 import { isValidEmail } from '../helpers/validaremail.js';
 import { hashPassword, comparePassword } from '../helpers/password.js';
+import { sendEmail, emailTemplates } from '../helpers/serviceEmail.js';
 
 // Función para crear roles iniciales
 const crearRolesIniciales = async () => {
@@ -73,6 +74,25 @@ const registrar = async (req, res) => {
 
     await nuevoUsuario.save();
 
+     try {
+      const welcomeEmail = emailTemplates.welcome({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        role: rolPorDefecto.name
+      });
+      
+      await sendEmail(
+        email, 
+        '¡Bienvenido al Sistema de Gestión de Proyectos!', 
+        welcomeEmail
+      );
+      console.log(`📧 Correo de bienvenida enviado a ${email}`);
+    } catch (emailError) {
+      console.error('Error enviando correo de bienvenida:', emailError);
+      // No fallar el registro si el correo no se puede enviar
+    }
+
     res.status(201).json({
       ok: true,
       msg: "Usuario registrado correctamente"
@@ -85,6 +105,7 @@ const registrar = async (req, res) => {
     });
   }
 };
+  
 
 // Login
 const login = async (req, res) => {

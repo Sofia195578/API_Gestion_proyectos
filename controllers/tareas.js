@@ -2,6 +2,7 @@ import Task from '../models/tasks.js';
 import Project from '../models/projects.js';
 import State from '../models/states.js';
 import mongoose from 'mongoose';
+import { notificarTareaAsignada } from '../controllers/email.js';
 
 const listarTareasProyecto = async (req, res) => {
     try {
@@ -449,7 +450,13 @@ const asignarTarea = async (req, res) => {
             { new: true, runValidators: true }
         )
             .populate('assignedTo', 'firstName lastName email')
-            .populate('status', 'name description color');
+            .populate('status', 'name description color')
+            .populate('project', 'name description');
+
+        if (assignedUserId && tareaActualizada.assignedTo) {
+            const assignedBy = req.usuario;
+            await notificarTareaAsignada(tareaActualizada, tareaActualizada.assignedTo, assignedBy);
+        }
 
         res.json({
             ok: true,

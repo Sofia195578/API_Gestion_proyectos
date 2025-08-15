@@ -67,6 +67,10 @@ const projectSchema = new mongoose.Schema({
         type: Number,
         min: 0
     },
+    imageUrl: { // NUEVO CAMPO
+        type: String,
+        default: ''
+    },
     isActive: { 
         type: Boolean, 
         default: true 
