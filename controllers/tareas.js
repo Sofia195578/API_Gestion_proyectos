@@ -1,8 +1,9 @@
 import Task from '../models/tasks.js';
 import Project from '../models/projects.js';
 import State from '../models/states.js';
+import Usuario from '../models/Users.js'; // AGREGAR ESTA IMPORTACIÓN
 import mongoose from 'mongoose';
-import { notificarTareaAsignada } from '../controllers/email.js';
+import { notificarTareaAsignada } from './email.js'; 
 
 const listarTareasProyecto = async (req, res) => {
     try {
@@ -120,7 +121,8 @@ const crearTarea = async (req, res) => {
             tags: tags || []
         });
 
-
+        await nuevaTarea.save();
+        
         await nuevaTarea.populate([
             { path: 'assignedTo', select: 'firstName lastName email' },
             { path: 'createdBy', select: 'firstName lastName email' },
@@ -416,7 +418,7 @@ const asignarTarea = async (req, res) => {
         const tarea = await Task.findOne({
             _id: id,
             isActive: true
-        }).populate('project', 'owner members');
+        }).populate('project', 'owner members name description'); // AGREGAR name y description
 
         if (!tarea) {
             return res.status(404).json({
@@ -432,6 +434,8 @@ const asignarTarea = async (req, res) => {
             });
         }
 
+        let usuarioAsignado = null;
+
         if (assignedUserId) {
             const esMiembro = tarea.project.owner.toString() === assignedUserId ||
                 tarea.project.members.some(member => member.user.toString() === assignedUserId);
@@ -440,6 +444,17 @@ const asignarTarea = async (req, res) => {
                 return res.status(400).json({
                     ok: false,
                     msg: 'El usuario debe ser miembro del proyecto'
+                });
+            }
+
+            // OBTENER DATOS COMPLETOS DEL USUARIO ASIGNADO
+            usuarioAsignado = await Usuario.findById(assignedUserId)
+                .select('firstName lastName email');
+
+            if (!usuarioAsignado) {
+                return res.status(404).json({
+                    ok: false,
+                    msg: 'Usuario asignado no encontrado'
                 });
             }
         }
@@ -453,9 +468,25 @@ const asignarTarea = async (req, res) => {
             .populate('status', 'name description color')
             .populate('project', 'name description');
 
-        if (assignedUserId && tareaActualizada.assignedTo) {
-            const assignedBy = req.usuario;
-            await notificarTareaAsignada(tareaActualizada, tareaActualizada.assignedTo, assignedBy);
+        // ENVIAR NOTIFICACIÓN POR EMAIL SI SE ASIGNA LA TAREA
+        if (assignedUserId && usuarioAsignado) {
+            try {
+                await notificarTareaAsignada(
+                    {
+                        title: tareaActualizada.title,
+                        description: tareaActualizada.description,
+                        priority: tareaActualizada.priority,
+                        estimatedHours: tareaActualizada.estimatedHours,
+                        dueDate: tareaActualizada.dueDate,
+                        project: tareaActualizada.project
+                    },
+                    usuarioAsignado,
+                    req.usuario
+                );
+            } catch (emailError) {
+                console.error('Error enviando notificación de tarea:', emailError);
+                // No fallar la operación si el email no se puede enviar
+            }
         }
 
         res.json({

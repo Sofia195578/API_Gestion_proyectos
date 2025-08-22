@@ -162,25 +162,25 @@ export const emailTemplates = {
     },
 
     // Invitación a proyecto
-    projectInvitation: (projectData, invitedBy, invitedUser) => {
-        const content = `
-            <h2>📋 Invitación a Proyecto</h2>
-            <p>¡Hola ${invitedUser.firstName}!</p>
-            <p><strong>${invitedBy.firstName} ${invitedBy.lastName}</strong> te ha invitado a colaborar en un proyecto.</p>
-            
-            <div class="project-info">
-                <h3>📂 Detalles del Proyecto:</h3>
-                <p><strong>Nombre:</strong> ${projectData.name}</p>
-                <p><strong>Descripción:</strong> ${projectData.description}</p>
-                <p><strong>Categoría:</strong> ${projectData.category?.name || 'Sin categoría'}</p>
-                <p><strong>Propietario:</strong> ${invitedBy.firstName} ${invitedBy.lastName}</p>
-            </div>
-            
-            <p>Inicia sesión en el sistema para empezar a trabajar en este proyecto.</p>
-        `;
+    projectInvitation: (projectData, invitedUser, invitedBy) => {
+    const content = `
+        <h2>📋 Invitación a Proyecto</h2>
+        <p>¡Hola ${invitedUser.firstName}!</p>
+        <p><strong>${invitedBy.firstName} ${invitedBy.lastName}</strong> te ha invitado a colaborar en un proyecto.</p>
         
-        return getBaseTemplate('Invitación a Proyecto', content);
-    },
+        <div class="project-info">
+            <h3>📂 Detalles del Proyecto:</h3>
+            <p><strong>Nombre:</strong> ${projectData.name}</p>
+            <p><strong>Descripción:</strong> ${projectData.description}</p>
+            <p><strong>Categoría:</strong> ${projectData.category?.name || 'Sin categoría'}</p>
+            <p><strong>Propietario:</strong> ${invitedBy.firstName} ${invitedBy.lastName}</p>
+        </div>
+        
+        <p>Inicia sesión en el sistema para empezar a trabajar en este proyecto.</p>
+    `;
+    
+    return getBaseTemplate('Invitación a Proyecto', content);
+},
 
     // Nueva tarea asignada
     taskAssigned: (taskData, assignedUser, assignedBy) => {

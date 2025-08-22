@@ -1,6 +1,9 @@
 import Project from '../models/projects.js';
 import Categoria from '../models/categorias.js';
+import Usuario from '../models/Users.js'; // AGREGAR ESTA IMPORTACIÓN
 import mongoose from 'mongoose';
+import { notificarInvitacionProyecto } from './email.js'; // AGREGAR ESTA IMPORTACIÓN
+
 
 const listarProyectos = async (req, res) => {
     try {
@@ -246,6 +249,7 @@ const eliminarProyecto = async (req, res) => {
         });
     }
 };
+
 const agregarMiembro = async (req, res) => {
     try {
         const { id } = req.params;
@@ -266,7 +270,7 @@ const agregarMiembro = async (req, res) => {
             _id: id,
             owner: ownerId,
             isActive: true
-        });
+        }).populate('category', 'name description'); // AGREGAR POPULATE
 
         if (!proyecto) {
             return res.status(404).json({
@@ -286,6 +290,17 @@ const agregarMiembro = async (req, res) => {
             });
         }
 
+        // OBTENER DATOS DEL USUARIO INVITADO
+        const usuarioInvitado = await Usuario.findById(userId)
+            .select('firstName lastName email');
+
+        if (!usuarioInvitado) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Usuario no encontrado'
+            });
+        }
+
         proyecto.members.push({
             user: userId,
             role: roleId,
@@ -293,6 +308,22 @@ const agregarMiembro = async (req, res) => {
         });
 
         await proyecto.save();
+
+        // ENVIAR NOTIFICACIÓN POR EMAIL
+        try {
+            await notificarInvitacionProyecto(
+                {
+                    name: proyecto.name,
+                    description: proyecto.description,
+                    category: proyecto.category
+                },
+                usuarioInvitado,
+                req.usuario
+            );
+        } catch (emailError) {
+            console.error('Error enviando invitación por email:', emailError);
+            // No fallar la operación si el email no se puede enviar
+        }
 
         await proyecto.populate('members.user', 'firstName lastName email');
         await proyecto.populate('members.role', 'name');

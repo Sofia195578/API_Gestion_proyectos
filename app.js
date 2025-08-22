@@ -21,6 +21,23 @@ import { initializeStates } from "./utils/stateInitializer.js";
 dotenv.config();
 const app = express();
 
+// Validar configuración de email
+const validarConfigEmail = () => {
+    const requeridos = ['EMAIL_USER', 'EMAIL_PASS', 'EMAIL_SERVICE'];
+    const faltantes = requeridos.filter(key => !process.env[key]);
+    
+    if (faltantes.length > 0) {
+        console.warn(`⚠️  Configuración de email incompleta. Faltan: ${faltantes.join(', ')}`);
+        console.warn('Las notificaciones por email no funcionarán correctamente.');
+        return false;
+    }
+    
+    console.log('✅ Configuración de email válida');
+    return true;
+};
+
+validarConfigEmail();
+
 // Middlewares
 app.use(express.json());
 

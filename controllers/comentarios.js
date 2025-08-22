@@ -1,6 +1,8 @@
 import Comment from '../models/comments.js';
 import Project from '../models/projects.js';
+import Usuario from '../models/Users.js';
 import mongoose from 'mongoose';
+import { notificarNuevoComentario } from './email.js'; 
 
 
 const listarComentarios = async (req, res) => {
@@ -68,7 +70,6 @@ const crearComentario = async (req, res) => {
             });
         }
 
-
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
                 ok: false,
@@ -83,7 +84,9 @@ const crearComentario = async (req, res) => {
                 { 'members.user': userId }
             ],
             isActive: true
-        });
+        })
+        .populate('owner', 'firstName lastName email') // AGREGAR POPULATE
+        .populate('members.user', 'firstName lastName email'); // AGREGAR POPULATE
 
         if (!proyecto) {
             return res.status(404).json({
@@ -101,6 +104,42 @@ const crearComentario = async (req, res) => {
         await nuevoComentario.save();
 
         await nuevoComentario.populate('author', 'firstName lastName email avatar');
+
+        // ENVIAR NOTIFICACIONES POR EMAIL
+        try {
+            // Crear lista de destinatarios (owner + miembros, excluyendo al autor)
+            const destinatarios = [];
+            
+            // Agregar owner si no es el autor
+            if (proyecto.owner._id.toString() !== userId.toString()) {
+                destinatarios.push(proyecto.owner);
+            }
+            
+            // Agregar miembros que no sean el autor
+            proyecto.members.forEach(member => {
+                if (member.user._id.toString() !== userId.toString()) {
+                    destinatarios.push(member.user);
+                }
+            });
+
+            if (destinatarios.length > 0) {
+                await notificarNuevoComentario(
+                    {
+                        content: nuevoComentario.content,
+                        createdAt: nuevoComentario.createdAt
+                    },
+                    {
+                        name: proyecto.name,
+                        description: proyecto.description
+                    },
+                    nuevoComentario.author,
+                    destinatarios
+                );
+            }
+        } catch (emailError) {
+            console.error('Error enviando notificación de comentario:', emailError);
+            // No fallar la operación si el email no se puede enviar
+        }
 
         res.status(201).json({
             ok: true,

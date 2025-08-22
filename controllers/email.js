@@ -111,6 +111,7 @@ const notificarNuevoComentario = async (commentData, projectData, author, recipi
             .filter(user => user.email && user._id.toString() !== author._id.toString())
             .map(user => user.email);
 
+
         if (emails.length === 0) return;
 
         const subject = `Nuevo comentario en: ${projectData.name}`;
